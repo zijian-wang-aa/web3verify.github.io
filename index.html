@@ -23,6 +23,11 @@
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
     <script>
         const web3 = new Web3();
+        const urlParams = new URLSearchParams(window.location.search);
+
+        document.getElementById('message').value = urlParams.get('message') || '';
+        document.getElementById('signature').value = urlParams.get('signature') || '';
+        document.getElementById('address').value = urlParams.get('address') || '';
 
         function verifySignature() {
             const message = document.getElementById('message').value;
