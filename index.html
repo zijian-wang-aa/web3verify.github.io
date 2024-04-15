@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Signature Verification</title>
+</head>
+<body>
+    <h1>Web3 Signature Verification</h1>
+    <p>This page allows you to verify the authenticity of a signed message using Web3.</p>
+    <label for="message">Message:</label>
+    <input type="text" id="message" placeholder="Enter the original message">
+    <br>
+    <label for="signature">Signature:</label>
+    <input type="text" id="signature" placeholder="Enter the signature">
+    <br>
+    <label for="address">Address:</label>
+    <input type="text" id="address" placeholder="Enter the signer's address">
+    <br>
+    <button onclick="verifySignature()">Verify Signature</button>
+    <p id="result"></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+    <script>
+        const web3 = new Web3();
+
+        function verifySignature() {
+            const message = document.getElementById('message').value;
+            const signature = document.getElementById('signature').value;
+            const address = document.getElementById('address').value;
+
+            if (!web3.utils.isHexStrict(signature)) {
+                document.getElementById('result').textContent = 'Invalid signature format. Signature should be a hexadecimal string.';
+                return;
+            }
+
+            const recoveredAddress = web3.eth.accounts.recover(message, signature);
+
+            if (recoveredAddress.toLowerCase() === address.toLowerCase()) {
+                document.getElementById('result').textContent = 'Signature is valid!';
+            } else {
+                document.getElementById('result').textContent = 'Signature is invalid.';
+            }
+        }
+    </script>
+</body>
+</html>
