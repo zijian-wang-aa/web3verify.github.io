@@ -24,10 +24,18 @@
     <button onclick="verifySignatureWithWeb3()">Verify Signature with Web3</button>
     <button onclick="verifySignatureWithContract()">Verify Signature with Contract</button>
     <p id="result"></p>
+    <label>白名单管理:</label>
+    <button onclick="checkWhiteList()">检查白名单</button>
+    <button onclick="addWhiteList()">添加白名单</button>
+    <button onclick="removeWhiteList()">删除白名单</button>
 
     <script src="web3.min.js"></script>
+    <script src="ethers.min.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
+        const contractAddress = '0xaaAe341f9131634958a5CAE3FA797cc2510e96a4';
+        const contractABI = [{inputs:[],stateMutability:'nonpayable',type:'constructor',},{anonymous:false,inputs:[{indexed:false,internalType:'bytes32',name:'_hash',type:'bytes32',},{indexed:true,internalType:'address',name:'_signatory',type:'address',},{indexed:true,internalType:'bool',name:'_valid',type:'bool',},],name:'SignatureVerified',type:'event',},{inputs:[{internalType:'address',name:'_address',type:'address',},],name:'addToWhiteList',outputs:[],stateMutability:'nonpayable',type:'function',},{inputs:[{internalType:'address',name:'_address',type:'address',},],name:'isAddressInWhiteList',outputs:[{internalType:'bool',name:'',type:'bool',},],stateMutability:'view',type:'function',},{inputs:[{internalType:'address',name:'_address',type:'address',},],name:'removeFromWhiteList',outputs:[],stateMutability:'nonpayable',type:'function',},{inputs:[{internalType:'bytes32',name:'_hash',type:'bytes32',},{internalType:'bytes',name:'_signature',type:'bytes',},{internalType:'address',name:'_signatory',type:'address',},],name:'verifySignature',outputs:[],stateMutability:'nonpayable',type:'function',},{inputs:[{internalType:'address',name:'',type:'address',},],name:'whiteList',outputs:[{internalType:'bool',name:'',type:'bool',},],stateMutability:'view',type:'function',},];
+                    
 
         document.getElementById('message').value = urlParams.get('message') || '';
         document.getElementById('signature').value = urlParams.get('signature') || '';
@@ -79,6 +87,65 @@
             }
         }
 
+        async function checkWhiteList() {
+            if (typeof window.ethereum !== 'undefined') {
+                const web3 = new Web3(window.ethereum);
+                web3.eth.transactionConfirmationBlocks = 1;
+                try {
+                    const a = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const contract = new web3.eth.Contract(contractABI, contractAddress);
+                    const result = await contract.methods.isAddressInWhiteList(a[0]).call();
+                    if (result === true) {
+                        alert('You are in the white list');
+                    } else {
+                        alert('You are not in the white list');
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            } else {
+                console.error('Please install MetaMask to use this feature');
+            }
+        }
+
+        async function addWhiteList() {
+            if (typeof window.ethereum !== 'undefined') {
+                const web3 = new Web3(window.ethereum);
+                web3.eth.transactionConfirmationBlocks = 1;
+                try {
+                    const a = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const contract = new web3.eth.Contract(contractABI, contractAddress);
+                        const gas = await contract.methods.addToWhiteList(a[0]).estimateGas({from: a[0]});
+                    const result = await contract.methods.addToWhiteList(a[0]).send({from: a[0], gasPrice: '2000000000', gas: gas, value: '0'});
+                    if (result) {
+                        console.log(result);
+                        alert('Add whitelist method called: ' + result.blockHash);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            } else {
+                console.error('Please install MetaMask to use this feature');
+            }
+        }
+
+        async function removeWhiteList() {
+            if (typeof window.ethereum !== 'undefined') {
+                const web3 = new Web3(window.ethereum);
+                web3.eth.transactionConfirmationBlocks = 1;
+                const a = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const contract = new web3.eth.Contract(contractABI, contractAddress);
+                        const gas = await contract.methods.removeFromWhiteList(a[0]).estimateGas({from: a[0]});
+                    const result = await contract.methods.removeFromWhiteList(a[0]).send({from: a[0], gasPrice: '2000000000', gas: gas, value: '0'});
+                    if (result) {
+                        console.log(result);
+                        alert('Remove whitelist method called: ' + result.blockHash);
+                    }
+            } else {
+                console.error('Please install MetaMask to use this feature');
+            }
+        }
+
         async function verifySignatureWithContract() {
             // 检查是否有MetaMask提供的Provider
             if (typeof window.ethereum !== 'undefined') {
@@ -87,8 +154,6 @@
                 try {
                     // 请求用户授权访问其MetaMask账户
                     const a = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const contractAddress = '0xaaAe341f9131634958a5CAE3FA797cc2510e96a4';
-                    const contractABI = [{inputs:[],stateMutability:'nonpayable',type:'constructor',},{anonymous:false,inputs:[{indexed:false,internalType:'bytes32',name:'_hash',type:'bytes32',},{indexed:true,internalType:'address',name:'_signatory',type:'address',},{indexed:true,internalType:'bool',name:'_valid',type:'bool',},],name:'SignatureVerified',type:'event',},{inputs:[{internalType:'address',name:'_address',type:'address',},],name:'addToWhiteList',outputs:[],stateMutability:'nonpayable',type:'function',},{inputs:[{internalType:'address',name:'_address',type:'address',},],name:'isAddressInWhiteList',outputs:[{internalType:'bool',name:'',type:'bool',},],stateMutability:'view',type:'function',},{inputs:[{internalType:'address',name:'_address',type:'address',},],name:'removeFromWhiteList',outputs:[],stateMutability:'nonpayable',type:'function',},{inputs:[{internalType:'bytes32',name:'_hash',type:'bytes32',},{internalType:'bytes',name:'_signature',type:'bytes',},{internalType:'address',name:'_signatory',type:'address',},],name:'verifySignature',outputs:[],stateMutability:'nonpayable',type:'function',},{inputs:[{internalType:'address',name:'',type:'address',},],name:'whiteList',outputs:[{internalType:'bool',name:'',type:'bool',},],stateMutability:'view',type:'function',},];
                     const contract = new web3.eth.Contract(contractABI, contractAddress);
                     const message = document.getElementById('message').value;
                     const signature = document.getElementById('signature').value;
@@ -100,14 +165,10 @@
                     }
 
                     const messageHash = web3.eth.accounts.hashMessage(message);
-                    console.log(message);
-                    console.log(messageHash);
 
                     try {
                         const gas = await contract.methods.verifySignature(messageHash, signature, address).estimateGas({from: a[0]});
-                        console.log(gas);
                         const result = await contract.methods.verifySignature(messageHash, signature, address).send({from: a[0], gasPrice: '2000000000', gas: gas, value: '0'});
-                        console.log(result);
                         if (result.events.SignatureVerified.returnValues._valid) {
                             document.getElementById('result').textContent = 'Contract Verify: Signature is valid!';
                         } else {
